@@ -6,10 +6,12 @@ This ASP.NET Core 9 application uses PostgreSQL. Railway deploys the app from
 the repository's `Dockerfile`.
 
 1. In the Railway project, add a PostgreSQL database service.
-2. In the app service's **Variables**, set `ConnectionStrings__DefaultConnection`
-   to a PostgreSQL connection string using Railway's private database variables.
-   For a database service named `Postgres`, Railway variable references can be
-   used as follows:
+2. Link the app service to the PostgreSQL service so Railway provides `PGHOST`,
+   `PGPORT`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` to the app. The app builds
+   its PostgreSQL connection from these variables when
+   `ConnectionStrings__DefaultConnection` is not set. Alternatively, configure
+   that connection-string variable with Railway's private database variables.
+   For a database service named `Postgres`, the connection string can be:
 
    ```text
    Host=${{Postgres.PGHOST}};Port=${{Postgres.PGPORT}};Database=${{Postgres.PGDATABASE}};Username=${{Postgres.PGUSER}};Password=${{Postgres.PGPASSWORD}};SSL Mode=Require;Trust Server Certificate=true

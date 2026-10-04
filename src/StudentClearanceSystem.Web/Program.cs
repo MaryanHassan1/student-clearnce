@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using QuestPDF.Infrastructure;
 using StudentClearanceSystem.Web.Data;
 using StudentClearanceSystem.Web.Data.Seed;
@@ -14,6 +15,40 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString) && !builder.Environment.IsDevelopment())
+{
+    var postgresHost = builder.Configuration["PGHOST"];
+    var postgresDatabase = builder.Configuration["PGDATABASE"];
+    var postgresUsername = builder.Configuration["PGUSER"];
+    var postgresPassword = builder.Configuration["PGPASSWORD"];
+    var postgresPortValue = builder.Configuration["PGPORT"];
+
+    if (string.IsNullOrWhiteSpace(postgresHost) ||
+        string.IsNullOrWhiteSpace(postgresDatabase) ||
+        string.IsNullOrWhiteSpace(postgresUsername) ||
+        string.IsNullOrWhiteSpace(postgresPassword) ||
+        string.IsNullOrWhiteSpace(postgresPortValue))
+    {
+        throw new InvalidOperationException(
+            "Configure ConnectionStrings:DefaultConnection or provide Railway's PGHOST, PGPORT, PGDATABASE, PGUSER, and PGPASSWORD variables.");
+    }
+
+    if (!int.TryParse(postgresPortValue, out var postgresPort))
+    {
+        throw new InvalidOperationException("Railway variable PGPORT must be a valid port number.");
+    }
+
+    connectionString = new NpgsqlConnectionStringBuilder
+    {
+        Host = postgresHost,
+        Port = postgresPort,
+        Database = postgresDatabase,
+        Username = postgresUsername,
+        Password = postgresPassword,
+        SslMode = SslMode.Require
+    }.ConnectionString;
+}
+
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
