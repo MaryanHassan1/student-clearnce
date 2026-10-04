@@ -1,0 +1,102 @@
+@model Student
+@{
+    ViewData["Title"] = "Student Details";
+    var initials = Model.FullName.Length > 0 ? Model.FullName.Substring(0, 1).ToUpper() : "?";
+}
+
+<div class="page-heading">
+    <div>
+        <h3>Student Details</h3>
+        <div class="text-muted">Full profile and clearance history.</div>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                @if (!string.IsNullOrEmpty(Model.ProfilePicturePath))
+                {
+                    <img src="@Model.ProfilePicturePath" alt="Profile picture" class="rounded-circle mb-3" style="width:110px;height:110px;object-fit:cover;" />
+                }
+                else
+                {
+                    <div class="user-avatar mx-auto mb-3" style="width:110px;height:110px;font-size:2.2rem;">@initials</div>
+                }
+                <h5 class="mb-1">@Model.FullName</h5>
+                <p class="text-muted mb-2">@Model.RegistrationNumber</p>
+                @if (Model.AccountStatus == AccountStatus.Active)
+                {
+                    <span class="badge bg-success">Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Inactive</span>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted fw-normal">Gender</dt><dd class="col-sm-8">@Model.Gender</dd>
+                    <dt class="col-sm-4 text-muted fw-normal">Phone</dt><dd class="col-sm-8">@Model.Phone</dd>
+                    <dt class="col-sm-4 text-muted fw-normal">Email</dt><dd class="col-sm-8">@Model.Email</dd>
+                    <dt class="col-sm-4 text-muted fw-normal">Faculty</dt><dd class="col-sm-8">@Model.Faculty?.Name</dd>
+                    <dt class="col-sm-4 text-muted fw-normal">Department</dt><dd class="col-sm-8">@Model.Department?.Name</dd>
+                    <dt class="col-sm-4 text-muted fw-normal">Program</dt><dd class="col-sm-8">@Model.Program</dd>
+                    <dt class="col-sm-4 text-muted fw-normal">Academic Year</dt><dd class="col-sm-8 mb-0">@Model.AcademicYear</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Clearance History</h5>
+        @if (!Model.ClearanceRequests.Any())
+        {
+            <p class="text-muted mb-0">This student has not submitted a clearance request yet.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Graduation Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model.ClearanceRequests.OrderByDescending(r => r.RequestDate))
+                        {
+                            <tr>
+                                <td>@request.RequestDate.ToString("g")</td>
+                                <td>
+                                    @if (request.Status == ClearanceRequestStatus.Completed)
+                                    {
+                                        <span class="badge bg-success">Completed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">Pending</span>
+                                    }
+                                </td>
+                                <td>@(request.GraduationRecord?.Status.ToString() ?? "-")</td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary" asp-area="Admin" asp-controller="ClearanceRequests" asp-action="Review" asp-route-id="@request.ClearanceRequestId">Review</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

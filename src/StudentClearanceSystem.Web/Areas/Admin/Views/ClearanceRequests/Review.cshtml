@@ -1,0 +1,155 @@
+@model ClearanceRequest
+@{
+    ViewData["Title"] = "Review Clearance";
+    var allApproved = Model.ClearanceItems.All(i => i.Status == ClearanceItemStatus.Approved);
+    var approvedCount = Model.ClearanceItems.Count(i => i.Status == ClearanceItemStatus.Approved);
+    var totalCount = Model.ClearanceItems.Count;
+}
+
+<div class="page-heading">
+    <div>
+        <h3>Review Clearance</h3>
+        <div class="text-muted">Approve or reject each department for this student.</div>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <span class="user-avatar" style="width:46px;height:46px;font-size:1rem;">@(Model.Student?.FullName?.Length > 0 ? Model.Student.FullName.Substring(0, 1).ToUpper() : "?")</span>
+            <div>
+                <h5 class="mb-0">@Model.Student?.FullName</h5>
+                <p class="text-muted mb-0">@Model.Student?.RegistrationNumber &middot; Requested @Model.RequestDate.ToString("d")</p>
+            </div>
+        </div>
+        <div class="text-end">
+            <div class="stat-card-label mb-1">Departments Approved</div>
+            <div class="stat-card-value" style="font-size:1.3rem;">@approvedCount / @totalCount</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Rejection Reason</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.ClearanceItems.OrderBy(i => i.ClearanceDepartment!.Name))
+                    {
+                        <tr>
+                            <td>@item.ClearanceDepartment!.Name</td>
+                            <td>
+                                @switch (item.Status)
+                                {
+                                    case ClearanceItemStatus.Approved:
+                                        <span class="badge bg-success">Approved</span>
+                                        break;
+                                    case ClearanceItemStatus.Rejected:
+                                        <span class="badge bg-danger">Rejected</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-warning">Pending</span>
+                                        break;
+                                }
+                            </td>
+                            <td>@item.RejectionReason</td>
+                            <td class="text-end">
+                                <form asp-action="ApproveItem" method="post" class="d-inline">
+                                    <input type="hidden" name="itemId" value="@item.ClearanceItemId" />
+                                    <button type="submit" class="btn btn-sm btn-success" @(item.Status == ClearanceItemStatus.Approved ? "disabled" : "")>Approve</button>
+                                </form>
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal-@item.ClearanceItemId">Reject</button>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="rejectModal-@item.ClearanceItemId" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form asp-action="RejectItem" method="post">
+                                        <input type="hidden" name="itemId" value="@item.ClearanceItemId" />
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reject &mdash; @item.ClearanceDepartment!.Name</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <label class="form-label">Rejection Reason</label>
+                                            <textarea name="reason" class="form-control" rows="3" required>@item.RejectionReason</textarea>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-danger">Reject</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (Model.Status == ClearanceRequestStatus.Completed)
+{
+    <div class="card mt-3">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-card-icon tone-success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5" /></svg></div>
+                <div>
+                    <h5 class="mb-0">Clearance Completed</h5>
+                    <p class="text-muted mb-0">All departments have approved this student.</p>
+                </div>
+            </div>
+
+            @if (Model.GraduationRecord is not null)
+            {
+                @if (Model.GraduationRecord.Status == GraduationStatus.NotApproved)
+                {
+                    <form asp-action="ApproveGraduation" asp-route-id="@Model.ClearanceRequestId" method="post">
+                        <button type="submit" class="btn btn-primary">Approve Graduation</button>
+                    </form>
+                }
+                else if (Model.GraduationRecord.Status == GraduationStatus.Approved)
+                {
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-info">Graduation Approved</span>
+                        <form asp-action="MarkAsGraduated" asp-route-id="@Model.ClearanceRequestId" method="post">
+                            <button type="submit" class="btn btn-primary">Mark as Graduated</button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <span class="badge bg-primary">Student has Graduated</span>
+                }
+            }
+        </div>
+    </div>
+}
+else if (allApproved)
+{
+    <div class="card mt-3">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-card-icon tone-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5" /></svg></div>
+                <div>
+                    <h5 class="mb-0">All Departments Approved</h5>
+                    <p class="text-muted mb-0">This student is ready for clearance to be completed.</p>
+                </div>
+            </div>
+            <form asp-action="CompleteClearance" asp-route-id="@Model.ClearanceRequestId" method="post">
+                <button type="submit" class="btn btn-primary">Complete Clearance</button>
+            </form>
+        </div>
+    </div>
+}

@@ -1,0 +1,60 @@
+@model List<ClearanceDepartment>
+@{
+    ViewData["Title"] = "Clearance Departments";
+}
+
+<div class="page-heading">
+    <div>
+        <h3>Clearance Departments</h3>
+        <div class="text-muted">The offices that must sign off before a student's clearance is complete.</div>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Add Clearance Department</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var department in Model)
+                    {
+                        <tr>
+                            <td>@department.Name</td>
+                            <td>@department.Description</td>
+                            <td>
+                                @if (department.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@department.ClearanceDepartmentId">Edit</a>
+                                <form asp-action="ToggleActive" asp-route-id="@department.ClearanceDepartmentId" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm @(department.IsActive ? "btn-outline-warning" : "btn-outline-success")">
+                                        @(department.IsActive ? "Deactivate" : "Activate")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="4" class="text-center text-muted py-4">No clearance departments yet.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

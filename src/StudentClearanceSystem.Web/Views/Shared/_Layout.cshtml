@@ -1,0 +1,182 @@
+@using Microsoft.AspNetCore.Identity
+@using StudentClearanceSystem.Web.Common
+@inject SignInManager<ApplicationUser> SignInManager
+@{
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+
+    bool IsActive(string controller) => string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
+
+    string initials = "?";
+    if (User.Identity?.Name is { Length: > 0 } name)
+    {
+        var parts = name.Split(new[] { ' ', '.', '@' }, StringSplitOptions.RemoveEmptyEntries);
+        initials = parts.Length >= 2 ? $"{parts[0][0]}{parts[1][0]}" : name.Substring(0, Math.Min(2, name.Length));
+        initials = initials.ToUpperInvariant();
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Student Clearance System</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <div class="app-shell">
+            <div class="sidebar-backdrop no-print" id="sidebarBackdrop"></div>
+            <aside class="sidebar no-print" id="sidebar">
+                <div class="sidebar-brand">
+                    <div class="sidebar-brand-mark">SC</div>
+                    <div>
+                        Student Clearance
+                        <div style="font-weight:400;font-size:.7rem;color:#8b90b3;">&amp; Graduation Tracking</div>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    @if (User.IsInRole(Roles.Admin))
+                    {
+                        <a class="sidebar-link @(IsActive("Dashboard") ? "active" : "")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+                            Dashboard
+                        </a>
+                        <a class="sidebar-link @(IsActive("Students") ? "active" : "")" asp-area="Admin" asp-controller="Students" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2" /><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6" /><circle cx="17.3" cy="8.7" r="2.3" /><path d="M15.6 14.3c2.6.5 4.6 2.6 4.6 5.7" /></svg>
+                            Students
+                        </a>
+                        <a class="sidebar-link @(IsActive("ClearanceRequests") ? "active" : "")" asp-area="Admin" asp-controller="ClearanceRequests" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3.5" width="12" height="17" rx="1.5" /><path d="M9 3.5V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v.5" /><path d="M9 11.5l2 2 4-4.2M9 16h6" /></svg>
+                            Clearance Requests
+                        </a>
+
+                        <div class="sidebar-section-title">Setup</div>
+                        <a class="sidebar-link @(IsActive("Faculties") ? "active" : "")" asp-area="Admin" asp-controller="Faculties" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-5 8 5v12" /><path d="M9 21v-6h6v6M4 21h16" /></svg>
+                            Faculties
+                        </a>
+                        <a class="sidebar-link @(IsActive("Departments") ? "active" : "")" asp-area="Admin" asp-controller="Departments" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1.5" /><path d="M8 8h2M14 8h2M8 12h2M14 12h2M8 16h2M14 16h2" /></svg>
+                            Departments
+                        </a>
+                        <a class="sidebar-link @(IsActive("ClearanceDepartments") ? "active" : "")" asp-area="Admin" asp-controller="ClearanceDepartments" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 6a2 2 0 1 0 4 0 2 2 0 1 0-4 0zM4 18h16M16 18a2 2 0 1 0 4 0 2 2 0 1 0-4 0zM4 12h16M9 12a2 2 0 1 0 4 0 2 2 0 1 0-4 0z" /></svg>
+                            Clearance Departments
+                        </a>
+                        <a class="sidebar-link @(IsActive("Users") ? "active" : "")" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2" /><circle cx="8.5" cy="10" r="1.9" /><path d="M5.3 16.3c.5-1.7 1.7-2.6 3.2-2.6s2.7.9 3.2 2.6M14.5 9h4M14.5 12.5h4" /></svg>
+                            Manage Users
+                        </a>
+
+                        <div class="sidebar-section-title">Insights</div>
+                        <a class="sidebar-link @(IsActive("Reports") ? "active" : "")" asp-area="Admin" asp-controller="Reports" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M3 20h18" /></svg>
+                            Reports
+                        </a>
+                        <a class="sidebar-link @(IsActive("AuditLogs") ? "active" : "")" asp-area="Admin" asp-controller="AuditLogs" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
+                            Audit Log
+                        </a>
+                    }
+                    else if (User.IsInRole(Roles.Student))
+                    {
+                        <a class="sidebar-link @(IsActive("Dashboard") ? "active" : "")" asp-area="Student" asp-controller="Dashboard" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+                            Dashboard
+                        </a>
+                        <a class="sidebar-link @(IsActive("Profile") ? "active" : "")" asp-area="Student" asp-controller="Profile" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5" /><path d="M4.5 20c0-4 3.5-6.5 7.5-6.5s7.5 2.5 7.5 6.5" /></svg>
+                            My Profile
+                        </a>
+                        <a class="sidebar-link @(IsActive("Clearance") ? "active" : "")" asp-area="Student" asp-controller="Clearance" asp-action="Index">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3.5" width="12" height="17" rx="1.5" /><path d="M9 3.5V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v.5" /><path d="M9 11.5l2 2 4-4.2M9 16h6" /></svg>
+                            My Clearance
+                        </a>
+                    }
+                </nav>
+
+                <div class="sidebar-foot">Signed in as<br /><strong style="color:#d7d9ec;">@User.Identity!.Name</strong></div>
+            </aside>
+
+            <div class="app-main">
+                <header class="topbar no-print">
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle navigation">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+                        </button>
+                        <span class="topbar-title">@ViewData["Title"]</span>
+                    </div>
+                    <div class="topbar-actions">
+                        @await Component.InvokeAsync("NotificationBell")
+                        <div class="dropdown">
+                            <button class="btn user-chip dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="user-avatar">@initials</span>
+                                <span class="d-none d-md-inline">@User.Identity!.Name</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Settings">Settings</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="px-3 py-1">
+                                        <button type="submit" class="dropdown-item px-0">Log Out</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </header>
+
+                <main role="main" class="content-area">
+                    @if (TempData["SuccessMessage"] is string successMessage)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show no-print" role="alert">
+                            @successMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] is string errorMessage)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show no-print" role="alert">
+                            @errorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
+    }
+    else
+    {
+        @RenderBody()
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            var sidebar = document.getElementById('sidebar');
+            var backdrop = document.getElementById('sidebarBackdrop');
+            var toggle = document.getElementById('sidebarToggle');
+            if (!sidebar || !toggle) return;
+
+            function closeSidebar() {
+                sidebar.classList.remove('show');
+                backdrop.classList.remove('show');
+            }
+
+            toggle.addEventListener('click', function () {
+                sidebar.classList.toggle('show');
+                backdrop.classList.toggle('show');
+            });
+            backdrop.addEventListener('click', closeSidebar);
+        })();
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

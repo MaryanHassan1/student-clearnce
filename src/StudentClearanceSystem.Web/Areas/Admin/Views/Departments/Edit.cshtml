@@ -1,0 +1,39 @@
+@model DepartmentViewModel
+@{
+    ViewData["Title"] = "Edit Department";
+}
+
+<div class="page-heading">
+    <h3>Edit Department</h3>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Edit" asp-route-id="@Model.DepartmentId" method="post">
+                    <input type="hidden" asp-for="DepartmentId" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" autofocus />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="FacultyId" class="form-label"></label>
+                        <select asp-for="FacultyId" class="form-select" asp-items="ViewBag.Faculties">
+                            <option value="">-- Select Faculty --</option>
+                        </select>
+                        <span asp-validation-for="FacultyId" class="text-danger"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

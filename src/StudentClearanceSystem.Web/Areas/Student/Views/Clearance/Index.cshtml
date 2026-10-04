@@ -1,0 +1,121 @@
+@model ClearanceRequest?
+@{
+    ViewData["Title"] = "My Clearance";
+}
+
+<div class="page-heading">
+    <div>
+        <h3>My Clearance</h3>
+        <div class="text-muted">Track every department's decision on your clearance request.</div>
+    </div>
+</div>
+
+@if (Model is null)
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <p class="mb-3 text-muted">You have not submitted a clearance request yet.</p>
+            <form asp-action="RequestClearance" method="post">
+                <button type="submit" class="btn btn-primary btn-lg">Request Clearance</button>
+            </form>
+        </div>
+    </div>
+}
+else
+{
+    var total = Model.ClearanceItems.Count;
+    var approved = Model.ClearanceItems.Count(i => i.Status == ClearanceItemStatus.Approved);
+    var percent = total == 0 ? 0 : (int)Math.Round(approved * 100.0 / total);
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="card-title mb-0">@approved / @total Departments Approved</h5>
+                <span class="text-muted small">@percent%</span>
+            </div>
+            <div class="progress mb-3" style="height: 10px;">
+                <div class="progress-bar" role="progressbar" style="width:@percent%"></div>
+            </div>
+            <div class="d-flex flex-wrap gap-4">
+                <div>
+                    <div class="stat-card-label mb-1">Overall Status</div>
+                    @if (Model.Status == ClearanceRequestStatus.Completed)
+                    {
+                        <span class="badge bg-success">Clearance Completed</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning">Pending</span>
+                    }
+                </div>
+                @if (Model.GraduationRecord is not null)
+                {
+                    <div>
+                        <div class="stat-card-label mb-1">Graduation Status</div>
+                        @if (Model.GraduationRecord.Status == GraduationStatus.Graduated)
+                        {
+                            <span class="badge bg-primary">Graduated</span>
+                        }
+                        else if (Model.GraduationRecord.Status == GraduationStatus.Approved)
+                        {
+                            <span class="badge bg-info">Graduation Approved</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Not Approved</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Rejection Reason</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.ClearanceItems.OrderBy(i => i.ClearanceDepartment!.Name))
+                        {
+                            <tr>
+                                <td>@item.ClearanceDepartment!.Name</td>
+                                <td>
+                                    @switch (item.Status)
+                                    {
+                                        case ClearanceItemStatus.Approved:
+                                            <span class="badge bg-success">Approved</span>
+                                            break;
+                                        case ClearanceItemStatus.Rejected:
+                                            <span class="badge bg-danger">Rejected</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-warning">Pending</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@item.RejectionReason</td>
+                                <td class="text-end">
+                                    @if (item.Status == ClearanceItemStatus.Rejected)
+                                    {
+                                        <form asp-action="Resubmit" method="post">
+                                            <input type="hidden" name="itemId" value="@item.ClearanceItemId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">Resubmit</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

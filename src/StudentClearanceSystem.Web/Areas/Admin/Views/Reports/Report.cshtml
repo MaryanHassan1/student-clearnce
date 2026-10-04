@@ -1,0 +1,76 @@
+@model ReportViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="page-heading">
+    <div>
+        <h3>@Model.Title</h3>
+        <a asp-action="Index" class="text-muted small no-print">&larr; Back to Reports</a>
+    </div>
+    <div class="no-print d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="javascript:window.print()">Print</a>
+        <a class="btn btn-outline-success" asp-action="Export" asp-route-key="@Model.ReportKey" asp-route-search="@Model.Search" asp-route-format="excel">Export to Excel</a>
+        <a class="btn btn-outline-danger" asp-action="Export" asp-route-key="@Model.ReportKey" asp-route-search="@Model.Search" asp-route-format="pdf">Export to PDF</a>
+    </div>
+</div>
+
+<div class="card mb-3 no-print">
+    <div class="card-body py-3">
+        <form method="get" class="row g-2 align-items-center">
+            <input type="hidden" name="key" value="@Model.ReportKey" />
+            <div class="col-md-6">
+                <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Search by student name or reg. no" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        @foreach (var header in Model.Headers)
+                        {
+                            <th>@header</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            @foreach (var cell in row)
+                            {
+                                <td>@cell</td>
+                            }
+                        </tr>
+                    }
+                    @if (!Model.Rows.Any())
+                    {
+                        <tr><td colspan="@Model.Headers.Count" class="text-center text-muted py-4">No records found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.Rows.TotalPages > 1)
+        {
+            <nav class="mt-3 no-print">
+                <ul class="pagination mb-0">
+                    @for (var i = 1; i <= Model.Rows.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.Rows.PageIndex ? "active" : "")">
+                            <a class="page-link" asp-action="Report" asp-route-key="@Model.ReportKey" asp-route-pageIndex="@i" asp-route-search="@Model.Search">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>

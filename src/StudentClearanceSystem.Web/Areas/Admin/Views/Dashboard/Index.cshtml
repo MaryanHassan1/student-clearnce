@@ -1,0 +1,144 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="page-heading">
+    <div>
+        <h3>Overview</h3>
+        <div class="text-muted">A snapshot of clearance and graduation activity across the university. Click a card to jump straight to it.</div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+        <a class="stat-card tone-secondary" asp-area="Admin" asp-controller="Students" asp-action="Index">
+            <div class="stat-card-icon tone-secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2" /><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6" /><circle cx="17.3" cy="8.7" r="2.3" /><path d="M15.6 14.3c2.6.5 4.6 2.6 4.6 5.7" /></svg>
+            </div>
+            <div>
+                <div class="stat-card-label">Total Students</div>
+                <div class="stat-card-value">@Model.TotalStudents</div>
+            </div>
+            <span class="stat-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+        </a>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+        <a class="stat-card tone-warning" asp-area="Admin" asp-controller="ClearanceRequests" asp-action="Index" asp-route-status="Pending">
+            <div class="stat-card-icon tone-warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
+            </div>
+            <div>
+                <div class="stat-card-label">Pending</div>
+                <div class="stat-card-value">@Model.PendingClearanceRequests</div>
+            </div>
+            <span class="stat-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+        </a>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+        <a class="stat-card tone-success" asp-area="Admin" asp-controller="ClearanceRequests" asp-action="Index" asp-route-status="Completed">
+            <div class="stat-card-icon tone-success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5" /></svg>
+            </div>
+            <div>
+                <div class="stat-card-label">Completed</div>
+                <div class="stat-card-value">@Model.CompletedClearances</div>
+            </div>
+            <span class="stat-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+        </a>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+        <a class="stat-card tone-danger" asp-area="Admin" asp-controller="Reports" asp-action="Report" asp-route-key="rejected">
+            <div class="stat-card-icon tone-danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5" /><path d="M9 9l6 6M15 9l-6 6" /></svg>
+            </div>
+            <div>
+                <div class="stat-card-label">Rejected</div>
+                <div class="stat-card-value">@Model.RejectedClearances</div>
+            </div>
+            <span class="stat-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+        </a>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+        <a class="stat-card tone-info" asp-area="Admin" asp-controller="Reports" asp-action="Report" asp-route-key="graduation-approved">
+            <div class="stat-card-icon tone-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-5 8 5v12" /><path d="M9 21v-6h6v6M4 21h16" /></svg>
+            </div>
+            <div>
+                <div class="stat-card-label">Graduation Approved</div>
+                <div class="stat-card-value">@Model.GraduationApproved</div>
+            </div>
+            <span class="stat-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+        </a>
+    </div>
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+        <a class="stat-card tone-purple" asp-area="Admin" asp-controller="Reports" asp-action="Report" asp-route-key="graduated">
+            <div class="stat-card-icon tone-purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5l8-2.5L20 5v3l-8 2.5L4 8V5Z" /><path d="M8 10.2V15c0 1.5 1.8 3 4 3s4-1.5 4-3v-4.8" /></svg>
+            </div>
+            <div>
+                <div class="stat-card-label">Graduated</div>
+                <div class="stat-card-value">@Model.GraduatedStudents</div>
+            </div>
+            <span class="stat-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+        </a>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">Recent Clearance Requests</h5>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Registration No.</th>
+                        <th>Clearance</th>
+                        <th>Graduation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var request in Model.RecentRequests)
+                    {
+                        <tr>
+                            <td>@request.Student?.FullName</td>
+                            <td>@request.Student?.RegistrationNumber</td>
+                            <td>
+                                @if (request.Status == ClearanceRequestStatus.Completed)
+                                {
+                                    <span class="badge bg-success">Completed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">Pending</span>
+                                }
+                            </td>
+                            <td>
+                                @{
+                                    var gStatus = request.GraduationRecord?.Status.ToString() ?? "Not Approved";
+                                }
+                                @if (gStatus == "Graduated")
+                                {
+                                    <span class="badge bg-primary">Graduated</span>
+                                }
+                                else if (gStatus == "Approved")
+                                {
+                                    <span class="badge bg-info">Approved</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Not Approved</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.RecentRequests.Any())
+                    {
+                        <tr><td colspan="4" class="text-center text-muted py-4">No clearance requests yet.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

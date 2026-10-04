@@ -1,0 +1,100 @@
+@model PaginatedList<Student>
+@{
+    ViewData["Title"] = "Students";
+}
+
+<div class="page-heading">
+    <div>
+        <h3>Students</h3>
+        <div class="text-muted">All registered students and their account status.</div>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Add Student</a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body py-3">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search by name, reg. no, or email" />
+            </div>
+            <div class="col-md-3">
+                <select name="facultyId" class="form-select" asp-items="ViewBag.Faculties">
+                    <option value="">-- All Faculties --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="departmentId" class="form-select" asp-items="ViewBag.Departments">
+                    <option value="">-- All Departments --</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Registration No.</th>
+                        <th>Full Name</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var student in Model)
+                    {
+                        <tr>
+                            <td>@student.RegistrationNumber</td>
+                            <td>@student.FullName</td>
+                            <td>@student.Department?.Name</td>
+                            <td>
+                                @if (student.AccountStatus == AccountStatus.Active)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@student.StudentId">View</a>
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@student.StudentId">Edit</a>
+                                <form asp-action="ToggleStatus" asp-route-id="@student.StudentId" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm @(student.AccountStatus == AccountStatus.Active ? "btn-outline-warning" : "btn-outline-success")">
+                                        @(student.AccountStatus == AccountStatus.Active ? "Deactivate" : "Activate")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">No students found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="mt-3">
+                <ul class="pagination mb-0">
+                    @for (var i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pageIndex="@i" asp-route-search="@ViewBag.Search" asp-route-facultyId="@ViewBag.FacultyId" asp-route-departmentId="@ViewBag.DepartmentId">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>

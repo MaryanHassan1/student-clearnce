@@ -1,0 +1,113 @@
+@model StudentCreateViewModel
+@{
+    ViewData["Title"] = "Add Student";
+}
+
+<div class="page-heading">
+    <h3>Add Student</h3>
+</div>
+
+@if (!(bool)ViewBag.HasFaculties || !(bool)ViewBag.HasDepartments)
+{
+    <div class="alert alert-warning">
+        <strong>You need to set up at least one Faculty and Department before adding a student.</strong>
+        <div class="mt-2">
+            @if (!(bool)ViewBag.HasFaculties)
+            {
+                <a class="btn btn-sm btn-outline-primary me-2" asp-area="Admin" asp-controller="Faculties" asp-action="Create">Add a Faculty</a>
+            }
+            @if (!(bool)ViewBag.HasDepartments)
+            {
+                <a class="btn btn-sm btn-outline-primary" asp-area="Admin" asp-controller="Departments" asp-action="Create">Add a Department</a>
+            }
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="card"><div class="card-body">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="RegistrationNumber" class="form-label"></label>
+                    <input asp-for="RegistrationNumber" class="form-control" autofocus />
+                    <span asp-validation-for="RegistrationNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FullName" class="form-label"></label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Gender" class="form-label"></label>
+                    <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()"></select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Phone" class="form-label"></label>
+                    <input asp-for="Phone" class="form-control" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FacultyId" class="form-label"></label>
+                    <select asp-for="FacultyId" class="form-select" asp-items="ViewBag.Faculties">
+                        <option value="">-- Select Faculty --</option>
+                    </select>
+                    <span asp-validation-for="FacultyId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="DepartmentId" class="form-label"></label>
+                    <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                        <option value="">-- Select Department --</option>
+                    </select>
+                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Program" class="form-label"></label>
+                    <input asp-for="Program" class="form-control" />
+                    <span asp-validation-for="Program" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="AcademicYear" class="form-label"></label>
+                    <input asp-for="AcademicYear" class="form-control" placeholder="e.g. Year 4" />
+                    <span asp-validation-for="AcademicYear" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ProfilePicture" class="form-label"></label>
+                    <input asp-for="ProfilePicture" type="file" class="form-control" accept="image/*" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="Password" class="form-control" id="passwordField" />
+                        <button type="button" class="btn btn-outline-secondary" id="generatePasswordBtn">Generate</button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                    <div class="form-text">Share this password with the student. They will be required to change it on first login.</div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" @(((bool)ViewBag.HasFaculties && (bool)ViewBag.HasDepartments) ? "" : "disabled")>Save</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+        </div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('generatePasswordBtn').addEventListener('click', function () {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+            let password = '';
+            for (let i = 0; i < 10; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('passwordField').value = password;
+        });
+    </script>
+}

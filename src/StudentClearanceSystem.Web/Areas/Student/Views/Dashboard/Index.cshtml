@@ -1,0 +1,123 @@
+@model ClearanceRequest?
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="page-heading">
+    <div>
+        <h3>Welcome, @ViewBag.StudentName</h3>
+        <div class="text-muted">Here's where your clearance and graduation stand today.</div>
+    </div>
+</div>
+
+@if (Model is null)
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <p class="mb-3 text-muted">You have not submitted a clearance request yet.</p>
+            <a asp-controller="Clearance" asp-action="Index" class="btn btn-primary">Go to Clearance</a>
+        </div>
+    </div>
+}
+else
+{
+    var total = Model.ClearanceItems.Count;
+    var approved = Model.ClearanceItems.Count(i => i.Status == ClearanceItemStatus.Approved);
+    var rejected = Model.ClearanceItems.Count(i => i.Status == ClearanceItemStatus.Rejected);
+    var percent = total == 0 ? 0 : (int)Math.Round(approved * 100.0 / total);
+
+    var clearanceTone = Model.Status == ClearanceRequestStatus.Completed ? "tone-success" : "tone-warning";
+    var graduationTone = (Model.GraduationRecord?.Status ?? GraduationStatus.NotApproved) switch
+    {
+        GraduationStatus.Graduated => "tone-purple",
+        GraduationStatus.Approved => "tone-info",
+        _ => "tone-secondary"
+    };
+    <div class="row g-3">
+        <div class="col-sm-6 col-lg-4">
+            <a class="stat-card @clearanceTone" asp-controller="Clearance" asp-action="Index">
+                <div class="stat-card-icon @clearanceTone">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3.5" width="12" height="17" rx="1.5" /><path d="M9 11.5l2 2 4-4.2M9 16h6" /></svg>
+                </div>
+                <div>
+                    <div class="stat-card-label">Clearance Status</div>
+                    <div class="stat-card-value" style="font-size:1.2rem;">@Model.Status</div>
+                </div>
+                <span class="stat-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <a class="stat-card @graduationTone" asp-controller="Clearance" asp-action="Index">
+                <div class="stat-card-icon @graduationTone">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5l8-2.5L20 5v3l-8 2.5L4 8V5Z" /><path d="M8 10.2V15c0 1.5 1.8 3 4 3s4-1.5 4-3v-4.8" /></svg>
+                </div>
+                <div>
+                    <div class="stat-card-label">Graduation Status</div>
+                    <div class="stat-card-value" style="font-size:1.2rem;">@(Model.GraduationRecord?.Status.ToString() ?? "Not Approved")</div>
+                </div>
+                <span class="stat-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <a class="stat-card tone-danger" asp-controller="Clearance" asp-action="Index">
+                <div class="stat-card-icon tone-danger">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5" /><path d="M9 9l6 6M15 9l-6 6" /></svg>
+                </div>
+                <div>
+                    <div class="stat-card-label">Departments Rejected</div>
+                    <div class="stat-card-value">@rejected</div>
+                </div>
+                <span class="stat-card-arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+            </a>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="card-title mb-0">@approved / @total Departments Approved</h5>
+                <span class="text-muted small">@percent%</span>
+            </div>
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar" role="progressbar" style="width:@percent%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Department Status</h5>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr><th>Department</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.ClearanceItems.OrderBy(i => i.ClearanceDepartment!.Name))
+                        {
+                            <tr>
+                                <td>@item.ClearanceDepartment!.Name</td>
+                                <td>
+                                    @switch (item.Status)
+                                    {
+                                        case ClearanceItemStatus.Approved:
+                                            <span class="badge bg-success">Approved</span>
+                                            break;
+                                        case ClearanceItemStatus.Rejected:
+                                            <span class="badge bg-danger">Rejected</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-warning">Pending</span>
+                                            break;
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <a asp-controller="Clearance" asp-action="Index" class="btn btn-outline-primary mt-3">View Full Clearance Details</a>
+}

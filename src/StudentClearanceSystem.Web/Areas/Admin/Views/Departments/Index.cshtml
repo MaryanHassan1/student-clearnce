@@ -1,0 +1,47 @@
+@model List<Department>
+@{
+    ViewData["Title"] = "Departments";
+}
+
+<div class="page-heading">
+    <div>
+        <h3>Departments</h3>
+        <div class="text-muted">Academic departments students belong to, grouped under a faculty.</div>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Add Department</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Faculty</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var department in Model)
+                    {
+                        <tr>
+                            <td>@department.Name</td>
+                            <td>@department.Faculty?.Name</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@department.DepartmentId">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@department.DepartmentId" method="post" class="d-inline" onsubmit="return confirm('Delete this department?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="3" class="text-center text-muted py-4">No departments yet.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

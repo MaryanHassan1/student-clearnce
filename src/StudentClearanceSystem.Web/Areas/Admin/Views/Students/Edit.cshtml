@@ -1,0 +1,88 @@
+@model StudentEditViewModel
+@{
+    ViewData["Title"] = "Edit Student";
+}
+
+<div class="page-heading">
+    <h3>Edit Student</h3>
+</div>
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="card"><div class="card-body">
+        <form asp-action="Edit" asp-route-id="@Model.StudentId" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="StudentId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            @if (!string.IsNullOrEmpty(Model.ExistingProfilePicturePath))
+            {
+                <img src="@Model.ExistingProfilePicturePath" alt="Profile picture" class="rounded mb-3" style="width:100px;height:100px;object-fit:cover;" />
+            }
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="RegistrationNumber" class="form-label"></label>
+                    <input asp-for="RegistrationNumber" class="form-control" />
+                    <span asp-validation-for="RegistrationNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FullName" class="form-label"></label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Gender" class="form-label"></label>
+                    <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<Gender>()"></select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Phone" class="form-label"></label>
+                    <input asp-for="Phone" class="form-control" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FacultyId" class="form-label"></label>
+                    <select asp-for="FacultyId" class="form-select" asp-items="ViewBag.Faculties">
+                        <option value="">-- Select Faculty --</option>
+                    </select>
+                    <span asp-validation-for="FacultyId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="DepartmentId" class="form-label"></label>
+                    <select asp-for="DepartmentId" class="form-select" asp-items="ViewBag.Departments">
+                        <option value="">-- Select Department --</option>
+                    </select>
+                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Program" class="form-label"></label>
+                    <input asp-for="Program" class="form-control" />
+                    <span asp-validation-for="Program" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="AcademicYear" class="form-label"></label>
+                    <input asp-for="AcademicYear" class="form-control" />
+                    <span asp-validation-for="AcademicYear" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ProfilePicture" class="form-label"></label>
+                    <input asp-for="ProfilePicture" type="file" class="form-control" accept="image/*" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="AccountStatus" class="form-label"></label>
+                    <select asp-for="AccountStatus" class="form-select" asp-items="Html.GetEnumSelectList<AccountStatus>()"></select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+        </div></div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

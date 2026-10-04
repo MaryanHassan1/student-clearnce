@@ -1,0 +1,47 @@
+@model List<ApplicationUser>
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="page-heading">
+    <div>
+        <h3>Manage Users</h3>
+        <div class="text-muted">Admin accounts. Student accounts are managed from the <a asp-area="Admin" asp-controller="Students" asp-action="Index">Students</a> page.</div>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Add Admin</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>@user.FullName</td>
+                            <td>@user.Email</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="ResetPassword" asp-route-id="@user.Id">Reset Password</a>
+                                <form asp-action="ToggleLock" asp-route-id="@user.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">Lock/Unlock</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="3" class="text-center text-muted py-4">No admin users found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
