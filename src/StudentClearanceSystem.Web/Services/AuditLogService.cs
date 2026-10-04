@@ -21,7 +21,7 @@ public class AuditLogService : IAuditLogService
             EntityName = entityName,
             EntityId = entityId,
             Details = details,
-            Timestamp = DateTime.Now
+            Timestamp = DateTime.UtcNow
         });
 
         await _context.SaveChangesAsync();

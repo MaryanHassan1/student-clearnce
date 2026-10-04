@@ -90,7 +90,7 @@ public class ClearanceRequestsController : Controller
         item.Status = ClearanceItemStatus.Approved;
         item.RejectionReason = null;
         item.ReviewedByUserId = _userManager.GetUserId(User);
-        item.ReviewedDate = DateTime.Now;
+        item.ReviewedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         await _auditLog.LogAsync(_userManager.GetUserId(User)!, "Approve", "ClearanceItem", item.ClearanceItemId, $"{item.ClearanceDepartment!.Name} approved for {item.ClearanceRequest!.Student!.FullName}");
@@ -125,7 +125,7 @@ public class ClearanceRequestsController : Controller
         item.Status = ClearanceItemStatus.Rejected;
         item.RejectionReason = reason;
         item.ReviewedByUserId = _userManager.GetUserId(User);
-        item.ReviewedDate = DateTime.Now;
+        item.ReviewedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         await _auditLog.LogAsync(_userManager.GetUserId(User)!, "Reject", "ClearanceItem", item.ClearanceItemId, $"{item.ClearanceDepartment!.Name} rejected for {item.ClearanceRequest!.Student!.FullName}: {reason}");
@@ -156,7 +156,7 @@ public class ClearanceRequestsController : Controller
         }
 
         request.Status = ClearanceRequestStatus.Completed;
-        request.CompletedDate = DateTime.Now;
+        request.CompletedDate = DateTime.UtcNow;
         request.CompletedByUserId = _userManager.GetUserId(User);
 
         _context.GraduationRecords.Add(new GraduationRecord
@@ -190,7 +190,7 @@ public class ClearanceRequestsController : Controller
         }
 
         request.GraduationRecord.Status = GraduationStatus.Approved;
-        request.GraduationRecord.GraduationApprovedDate = DateTime.Now;
+        request.GraduationRecord.GraduationApprovedDate = DateTime.UtcNow;
         request.GraduationRecord.ApprovedByUserId = _userManager.GetUserId(User);
         await _context.SaveChangesAsync();
 
@@ -216,7 +216,7 @@ public class ClearanceRequestsController : Controller
         }
 
         request.GraduationRecord.Status = GraduationStatus.Graduated;
-        request.GraduationRecord.GraduatedDate = DateTime.Now;
+        request.GraduationRecord.GraduatedDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         await _auditLog.LogAsync(_userManager.GetUserId(User)!, "MarkGraduated", "GraduationRecord", request.GraduationRecord.GraduationRecordId, request.Student!.FullName);

@@ -19,7 +19,7 @@ public class NotificationService : INotificationService
             RecipientUserId = recipientUserId,
             Message = message,
             IsRead = false,
-            CreatedDate = DateTime.Now
+            CreatedDate = DateTime.UtcNow
         });
 
         await _context.SaveChangesAsync();

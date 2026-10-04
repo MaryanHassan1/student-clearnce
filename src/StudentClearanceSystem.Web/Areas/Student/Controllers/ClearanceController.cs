@@ -71,7 +71,7 @@ public class ClearanceController : Controller
         var request = new ClearanceRequest
         {
             StudentId = student.StudentId,
-            RequestDate = DateTime.Now,
+            RequestDate = DateTime.UtcNow,
             Status = ClearanceRequestStatus.Pending
         };
 
