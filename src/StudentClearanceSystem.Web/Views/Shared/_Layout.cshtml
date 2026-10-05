@@ -99,7 +99,12 @@
                     }
                 </nav>
 
-                <div class="sidebar-foot">Signed in as<br /><strong style="color:#d7d9ec;">@User.Identity!.Name</strong></div>
+                <div class="sidebar-foot">
+                    Signed in as<br /><strong style="color:#d7d9ec;">@User.Identity!.Name</strong>
+                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="mt-2">
+                        <button type="submit" class="btn btn-sm btn-outline-light w-100">Log Out</button>
+                    </form>
+                </div>
             </aside>
 
             <div class="app-main">
