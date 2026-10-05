@@ -32,7 +32,8 @@ public static class DbInitializer
             if (!environment.IsDevelopment())
             {
                 throw new InvalidOperationException(
-                    "Configuration 'InitialAdmin:Password' must be set outside Development.");
+                    "Production deployment requires 'InitialAdmin:Password' configuration. " +
+                    "Set the environment variable InitialAdmin_Password (or InitialAdmin:Password in appsettings.json).");
             }
 
             adminPassword = "Admin@12345";

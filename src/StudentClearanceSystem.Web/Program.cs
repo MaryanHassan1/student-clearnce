@@ -14,7 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// In production, if DefaultConnection is empty/whitespace, try Railway PostgreSQL variables
 if (string.IsNullOrWhiteSpace(connectionString) && !builder.Environment.IsDevelopment())
 {
     var postgresHost = builder.Configuration["PGHOST"];
@@ -23,14 +25,18 @@ if (string.IsNullOrWhiteSpace(connectionString) && !builder.Environment.IsDevelo
     var postgresPassword = builder.Configuration["PGPASSWORD"];
     var postgresPortValue = builder.Configuration["PGPORT"];
 
-    if (string.IsNullOrWhiteSpace(postgresHost) ||
-        string.IsNullOrWhiteSpace(postgresDatabase) ||
-        string.IsNullOrWhiteSpace(postgresUsername) ||
-        string.IsNullOrWhiteSpace(postgresPassword) ||
-        string.IsNullOrWhiteSpace(postgresPortValue))
+    var missingVars = new List<string>();
+    if (string.IsNullOrWhiteSpace(postgresHost)) missingVars.Add("PGHOST");
+    if (string.IsNullOrWhiteSpace(postgresDatabase)) missingVars.Add("PGDATABASE");
+    if (string.IsNullOrWhiteSpace(postgresUsername)) missingVars.Add("PGUSER");
+    if (string.IsNullOrWhiteSpace(postgresPassword)) missingVars.Add("PGPASSWORD");
+    if (string.IsNullOrWhiteSpace(postgresPortValue)) missingVars.Add("PGPORT");
+
+    if (missingVars.Count > 0)
     {
         throw new InvalidOperationException(
-            "Configure ConnectionStrings:DefaultConnection or provide Railway's PGHOST, PGPORT, PGDATABASE, PGUSER, and PGPASSWORD variables.");
+            $"Missing required Railway PostgreSQL environment variables: {string.Join(", ", missingVars)}. " +
+            "Either configure ConnectionStrings:DefaultConnection or ensure Railway PostgreSQL is linked to this service.");
     }
 
     if (!int.TryParse(postgresPortValue, out var postgresPort))
@@ -52,7 +58,8 @@ if (string.IsNullOrWhiteSpace(connectionString) && !builder.Environment.IsDevelo
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
-        "Connection string 'DefaultConnection' is not configured.");
+        "No database connection configured. Set ConnectionStrings:DefaultConnection (for manual config) " +
+        "or link a PostgreSQL database in Railway.");
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
