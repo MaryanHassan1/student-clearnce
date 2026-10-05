@@ -27,20 +27,23 @@ public static class DbInitializer
 
         var adminEmail = configuration["InitialAdmin:Email"] ?? "admin@university.edu";
         var adminPassword = configuration["InitialAdmin:Password"];
-        if (string.IsNullOrWhiteSpace(adminPassword))
+        if (string.IsNullOrWhiteSpace(adminPassword) && environment.IsDevelopment())
         {
-            if (!environment.IsDevelopment())
-            {
-                throw new InvalidOperationException(
-                    "Production deployment requires 'InitialAdmin:Password' configuration. " +
-                    "Set the environment variable InitialAdmin_Password (or InitialAdmin:Password in appsettings.json).");
-            }
-
             adminPassword = "Admin@12345";
         }
 
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
-        if (adminUser is null)
+        if (adminUser is null && string.IsNullOrWhiteSpace(adminPassword))
+        {
+            // Keep the site online; the admin account is created on the next start once the variable is set.
+            services.GetRequiredService<ILoggerFactory>()
+                .CreateLogger(typeof(DbInitializer))
+                .LogWarning(
+                    "No administrator account exists and 'InitialAdmin__Password' is not set. " +
+                    "Set it in the Railway service variables and redeploy to create {AdminEmail}.",
+                    adminEmail);
+        }
+        else if (adminUser is null)
         {
             adminUser = new ApplicationUser
             {
@@ -51,7 +54,7 @@ public static class DbInitializer
                 MustChangePassword = true
             };
 
-            var result = await userManager.CreateAsync(adminUser, adminPassword);
+            var result = await userManager.CreateAsync(adminUser, adminPassword!);
             if (!result.Succeeded)
             {
                 var errors = string.Join("; ", result.Errors.Select(error => error.Description));

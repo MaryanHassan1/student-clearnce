@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -55,10 +56,22 @@ if (!string.IsNullOrWhiteSpace(postgresHost))
         Database = postgresDatabase,
         Username = postgresUsername,
         Password = postgresPassword,
-        SslMode = SslMode.Require
+        // Railway's private network (*.railway.internal) does not need TLS; the public proxy supports it.
+        SslMode = SslMode.Prefer
     }.ConnectionString;
 }
-else if (!builder.Environment.IsDevelopment() && !string.IsNullOrWhiteSpace(connectionString))
+else
+{
+    // Railway also exposes DATABASE_URL, and users often paste postgresql:// URLs, which Npgsql cannot parse.
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        connectionString = builder.Configuration["DATABASE_URL"];
+    }
+
+    connectionString = ConvertPostgresUrl(connectionString);
+}
+
+if (!string.IsNullOrWhiteSpace(connectionString) && !builder.Environment.IsDevelopment())
 {
     var configuredHost = new NpgsqlConnectionStringBuilder(connectionString).Host;
     if (IsLoopbackHost(configuredHost))
@@ -103,12 +116,33 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IReportExportService, ReportExportService>();
 
+// Railway terminates TLS at its proxy and forwards plain HTTP to the container.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    await DbInitializer.SeedAsync(scope.ServiceProvider);
+    try
+    {
+        await DbInitializer.SeedAsync(scope.ServiceProvider);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogCritical(ex, "Database migration/seeding failed. Check the Railway PostgreSQL variables.");
+        throw;
+    }
 }
+
+app.UseForwardedHeaders();
+
+// Lightweight endpoint for the Railway healthcheck ("/" redirects to the login page).
+app.MapGet("/health", () => Results.Ok("Healthy"));
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -139,3 +173,25 @@ static bool IsLoopbackHost(string? host) =>
     !string.IsNullOrWhiteSpace(host) &&
     (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) ||
      (IPAddress.TryParse(host, out var address) && IPAddress.IsLoopback(address)));
+
+static string? ConvertPostgresUrl(string? value)
+{
+    if (string.IsNullOrWhiteSpace(value) ||
+        !(value.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+          value.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)))
+    {
+        return value;
+    }
+
+    var uri = new Uri(value);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    return new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.IsDefaultPort || uri.Port <= 0 ? 5432 : uri.Port,
+        Database = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/')),
+        Username = Uri.UnescapeDataString(userInfo[0]),
+        Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : null,
+        SslMode = SslMode.Prefer
+    }.ConnectionString;
+}
