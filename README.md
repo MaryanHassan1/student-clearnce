@@ -7,11 +7,12 @@ the repository's `Dockerfile`.
 
 1. In the Railway project, add a PostgreSQL database service.
 2. Link the app service to the PostgreSQL service so Railway provides `PGHOST`,
-   `PGPORT`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` to the app. The app builds
-   its PostgreSQL connection from these variables when
-   `ConnectionStrings__DefaultConnection` is not set. Alternatively, configure
-   that connection-string variable with Railway's private database variables.
-   For a database service named `Postgres`, the connection string can be:
+   `PGPORT`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD` to the app. In production,
+   the app prioritizes these Railway variables over
+   `ConnectionStrings__DefaultConnection`, preventing a local development
+   connection string from being used. Alternatively, configure the connection
+   string variable with Railway's private database variables. For a database
+   service named `Postgres`, it can be:
 
    ```text
    Host=${{Postgres.PGHOST}};Port=${{Postgres.PGPORT}};Database=${{Postgres.PGDATABASE}};Username=${{Postgres.PGUSER}};Password=${{Postgres.PGPASSWORD}};SSL Mode=Require;Trust Server Certificate=true
@@ -27,6 +28,10 @@ the repository's `Dockerfile`.
 Do not commit production connection strings or passwords. Add them as Railway
 service variables. A newly created administrator account is marked to change
 its password after signing in.
+
+For local development, configure `ConnectionStrings__DefaultConnection` through
+.NET user secrets or an environment variable. Do not store a local or production
+database connection string in `appsettings*.json`.
 
 The PostgreSQL migrations create a new database schema. They do not migrate
 existing data from a SQL Server database.

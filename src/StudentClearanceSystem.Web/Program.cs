@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -16,17 +17,21 @@ builder.Services.AddControllersWithViews();
 
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// In production, if DefaultConnection is empty/whitespace, try Railway PostgreSQL variables
-if (string.IsNullOrWhiteSpace(connectionString) && !builder.Environment.IsDevelopment())
+var postgresHost = builder.Configuration["PGHOST"];
+if (!builder.Environment.IsDevelopment() && IsLoopbackHost(postgresHost))
 {
-    var postgresHost = builder.Configuration["PGHOST"];
+    throw new InvalidOperationException(
+        "Railway PGHOST points to localhost. Link the Railway PostgreSQL service and use its remote PGHOST value.");
+}
+
+if (!string.IsNullOrWhiteSpace(postgresHost))
+{
     var postgresDatabase = builder.Configuration["PGDATABASE"];
     var postgresUsername = builder.Configuration["PGUSER"];
     var postgresPassword = builder.Configuration["PGPASSWORD"];
     var postgresPortValue = builder.Configuration["PGPORT"];
 
     var missingVars = new List<string>();
-    if (string.IsNullOrWhiteSpace(postgresHost)) missingVars.Add("PGHOST");
     if (string.IsNullOrWhiteSpace(postgresDatabase)) missingVars.Add("PGDATABASE");
     if (string.IsNullOrWhiteSpace(postgresUsername)) missingVars.Add("PGUSER");
     if (string.IsNullOrWhiteSpace(postgresPassword)) missingVars.Add("PGPASSWORD");
@@ -35,8 +40,7 @@ if (string.IsNullOrWhiteSpace(connectionString) && !builder.Environment.IsDevelo
     if (missingVars.Count > 0)
     {
         throw new InvalidOperationException(
-            $"Missing required Railway PostgreSQL environment variables: {string.Join(", ", missingVars)}. " +
-            "Either configure ConnectionStrings:DefaultConnection or ensure Railway PostgreSQL is linked to this service.");
+            $"Railway PostgreSQL is partially configured. Missing variables: {string.Join(", ", missingVars)}.");
     }
 
     if (!int.TryParse(postgresPortValue, out var postgresPort))
@@ -54,12 +58,23 @@ if (string.IsNullOrWhiteSpace(connectionString) && !builder.Environment.IsDevelo
         SslMode = SslMode.Require
     }.ConnectionString;
 }
+else if (!builder.Environment.IsDevelopment() && !string.IsNullOrWhiteSpace(connectionString))
+{
+    var configuredHost = new NpgsqlConnectionStringBuilder(connectionString).Host;
+    if (IsLoopbackHost(configuredHost))
+    {
+        throw new InvalidOperationException(
+            "The production database connection points to localhost. Link the Railway PostgreSQL service " +
+            "to provide PGHOST, PGPORT, PGDATABASE, PGUSER, and PGPASSWORD, or configure a remote " +
+            "ConnectionStrings:DefaultConnection.");
+    }
+}
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
-        "No database connection configured. Set ConnectionStrings:DefaultConnection (for manual config) " +
-        "or link a PostgreSQL database in Railway.");
+        "No database connection configured. In production, link a PostgreSQL database in Railway or set " +
+        "ConnectionStrings:DefaultConnection. For development, configure ConnectionStrings:DefaultConnection.");
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -119,3 +134,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+static bool IsLoopbackHost(string? host) =>
+    !string.IsNullOrWhiteSpace(host) &&
+    (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+     (IPAddress.TryParse(host, out var address) && IPAddress.IsLoopback(address)));

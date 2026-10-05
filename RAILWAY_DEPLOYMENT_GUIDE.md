@@ -42,6 +42,11 @@ In Railway, go to your service's **Variables** tab and add the following:
   - Key: `ConnectionStrings__DefaultConnection`
   - Value: `postgresql://username:password@hostname:5432/database_name`
 
+When `PGHOST` is available, the application builds its production connection
+from the Railway PostgreSQL variables. If those variables are unavailable, a
+configured connection string must point to a remote database; production
+localhost connections are rejected.
+
 ### Initial Admin Account
 - Key: `InitialAdmin__Password` (or `InitialAdmin_Password`)
 - Value: A strong password for the admin account (e.g., `SecureAdminPass123!`)
